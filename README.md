@@ -6,6 +6,7 @@
 - [b. Setup Instructions](#b-setup-instructions)
 - [c. API Documentation](#c-api-documentation)
 - [d. Architectural Decisions](#d-architectural-decisions)
+- [e. Live Deployment](#e-live-deployment)
 
 ## a. Project Overview and Tech Stack Used
 
@@ -57,7 +58,7 @@ backend/
 
 1. **Clone the git repository and navigate to backend directory:**
    ```bash
-   git clone git@github.com:ShehzanChowdhury/ai-content-generator-backend.git
+   git clone https://github.com/ShehzanChowdhury/ai-content-generator-backend.git
    cd ai-content-generator-backend
    ```
 
@@ -145,3 +146,15 @@ The API server will run on `http://localhost:5000` and the worker will process A
 7. **Input Validation**: Zod schema validation ensures type safety and data integrity at the API boundary.
 
 8. **Error Handling**: Centralized error handling middleware provides consistent error responses across all endpoints.
+
+## e. Live Deployment
+
+### Deployed Applications
+- **Backend API:** [https://ai-content-generator-backend-k1r8.onrender.com/](https://ai-content-generator-backend-k1r8.onrender.com/)
+- **Frontend Application:** [https://shehzan-ai-content-generate.netlify.app/](https://shehzan-ai-content-generate.netlify.app/)
+
+The backend API is deployed on [Render.com](https://render.com). The API server and worker process are running in production mode.
+
+### GitHub Repositories
+- **Backend Repository:** [https://github.com/ShehzanChowdhury/ai-content-generator-backend](https://github.com/ShehzanChowdhury/ai-content-generator-backend)
+- **Frontend Repository:** [https://github.com/ShehzanChowdhury/ai-content-generator-frontend](https://github.com/ShehzanChowdhury/ai-content-generator-frontend)
