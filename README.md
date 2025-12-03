@@ -1,32 +1,28 @@
 # AI-Powered Content Generator Backend
 
-A complete backend system for AI-powered content generation and management built with Express.js, TypeScript, MongoDB, JWT Authentication, Redis Queue (BullMQ), and a separate Worker process.
+## Table of Contents
 
-## Features
+- [a. Project Overview and Tech Stack Used](#a-project-overview-and-tech-stack-used)
+- [b. Setup Instructions](#b-setup-instructions)
+- [c. API Documentation](#c-api-documentation)
+- [d. Architectural Decisions](#d-architectural-decisions)
 
-- 🔐 **JWT Authentication** - Secure user registration and login
-- 📝 **Content CRUD Operations** - Full Create, Read, Update, Delete for content
-- 🤖 **AI Content Generation** - Integration with Google GenAI for content generation
-- ⏱️ **Delayed Job Processing** - 1-minute delayed job execution using BullMQ
-- 👷 **Separate Worker Process** - Background job processing
-- 📡 **WebSocket Support** - Real-time job status updates (bonus feature)
-- 🔄 **Status Polling** - REST API endpoint for job status checking
-- 🐳 **Docker Support** - Complete Docker setup with docker-compose
+## a. Project Overview and Tech Stack Used
 
-## Tech Stack
+A backend system for AI-powered content generation and management. The system handles user authentication, content CRUD operations, and asynchronous AI content generation using a queue-based architecture with a separate worker process.
 
+**Tech Stack:**
 - **Runtime**: Node.js 20+
 - **Framework**: Express.js
 - **Language**: TypeScript (ES Modules)
 - **Database**: MongoDB with Mongoose
 - **Queue**: BullMQ with Redis
 - **Authentication**: JWT (jsonwebtoken)
-- **AI**: Google GenAI (@google/genai)
+- **AI Service**: Google GenAI (@google/genai)
 - **WebSocket**: Socket.IO
 - **Validation**: Zod
 
-## Project Structure
-
+### Folder Structure
 ```
 backend/
 ├── src/
@@ -45,21 +41,24 @@ backend/
 ├── Dockerfile.worker    # Docker image for worker process
 ├── docker-compose.yml   # Docker Compose configuration
 ├── package.json
-└── tsconfig.json
+├── tsconfig.json
+└── .env.example         # Environment variables template
 ```
 
-## Prerequisites
+## b. Setup Instructions
 
+### Prerequisites
 - Node.js 20+ and npm
 - MongoDB (local or cloud)
 - Redis (local or cloud)
 - Google GenAI API Key
 
-## Installation
+### Local Development Setup
 
-1. **Clone the repository and navigate to backend:**
+1. **Clone the git repository and navigate to backend directory:**
    ```bash
-   cd backend
+   git clone git@github.com:ShehzanChowdhury/ai-content-generator-backend.git
+   cd ai-content-generator-backend
    ```
 
 2. **Install dependencies:**
@@ -67,12 +66,12 @@ backend/
    npm install
    ```
 
-3. **Create `.env` file:**
+3. **Create `.env` file from `.env.example`:**
    ```bash
    cp .env.example .env
    ```
 
-4. **Configure environment variables in `.env`:**
+4. **Configure environment variables in `.env` (see `.env.example` for reference):**
    ```env
    PORT=5000
    NODE_ENV=development
@@ -82,14 +81,10 @@ backend/
    REDIS_HOST=localhost
    REDIS_PORT=6379
    GOOGLE_GENAI_API_KEY=your-google-genai-api-key
-   CORS_ORIGIN=http://localhost:3001
+   CORS_ORIGIN=http://localhost:3000
    ```
 
-## Running the Application
-
-### Development Mode
-
-1. **Start MongoDB and Redis** (if running locally):
+5. **Start MongoDB and Redis** (if running locally):
    ```bash
    # MongoDB
    mongod
@@ -98,62 +93,28 @@ backend/
    redis-server
    ```
 
-2. **Start the API server:**
+6. **Start the API server:**
    ```bash
    npm run dev
    ```
 
-3. **Start the worker process** (in a separate terminal):
+7. **Start the worker process** (in a separate terminal):
    ```bash
    npm run worker
    ```
 
-### Production Mode
+The API server will run on `http://localhost:5000` and the worker will process AI content generation jobs.
 
-1. **Build the project:**
-   ```bash
-   npm run build
-   ```
+## c. API Documentation
 
-2. **Start the API server:**
-   ```bash
-   npm start
-   ```
-
-3. **Start the worker:**
-   ```bash
-   npm run worker:prod
-   ```
-
-### Docker Compose
-
-1. **Create `.env` file with all required variables**
-
-2. **Start all services:**
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **View logs:**
-   ```bash
-   docker-compose logs -f
-   ```
-
-4. **Stop services:**
-   ```bash
-   docker-compose down
-   ```
-
-## API Endpoints
-
-### Authentication
-
+### Authentication Endpoints
 - `POST /api/v1/auth/register` - Register a new user
-- `POST /api/v1/auth/login` - Login user
+- `POST /api/v1/auth/login` - Login user and receive JWT token
+- `POST /api/v1/auth/refresh` - Refresh JWT token
 - `GET /api/v1/auth/me` - Get current user profile (protected)
+- `POST /api/v1/auth/logout` - Logout user (protected)
 
-### Content Management
-
+### Content Management Endpoints
 - `POST /api/v1/content` - Create new content and queue AI generation job
 - `GET /api/v1/content` - Get all user's content (paginated)
 - `GET /api/v1/content/:id` - Get single content by ID
@@ -163,76 +124,24 @@ backend/
 - `GET /api/v1/content/job/:jobId/status` - Get job status for content generation
 
 ### Health Check
-
 - `GET /health` - Server health check
 
-## Queue System
+**Note:** All content endpoints require JWT authentication. For detailed API documentation including request/response schemas, see `POSTMAN_DOCS.md`.
 
-The system uses BullMQ with Redis for job queue management:
+## d. Architectural Decisions
 
-1. **Job Creation**: When a user requests content generation, the job is added to the queue with a 1-minute delay
-2. **Job Processing**: The worker process picks up jobs after the delay and processes them
-3. **Status Updates**: Job status is updated in the database and can be polled via API or received via WebSocket
+1. **Separate Worker Process**: AI content generation runs in a dedicated worker process to prevent blocking the main API server and enable horizontal scaling.
 
-## WebSocket Events
+2. **Queue-Based Job Processing**: BullMQ with Redis handles asynchronous job processing with a 1-minute delay before execution, allowing the API to respond immediately while processing happens in the background.
 
-The server supports WebSocket connections for real-time updates:
+3. **Layered Architecture**: Clear separation of concerns with controllers (request handling), services (business logic), models (data layer), and middleware (cross-cutting concerns like authentication and error handling).
 
-- **Connect**: `socket.connect()`
-- **Subscribe to job**: `socket.emit('subscribe-job', jobId)`
-- **Unsubscribe from job**: `socket.emit('unsubscribe-job', jobId)`
-- **Receive updates**: `socket.on('job-update', (data) => {...})`
+4. **WebSocket for Real-Time Updates**: Socket.IO provides real-time job status updates to clients, with Redis pub/sub pattern enabling communication between worker and API server.
 
-## Content Types
+5. **TypeScript with ES Modules**: Type safety throughout the codebase with modern ES module syntax for better tree-shaking and performance.
 
-Supported content types for AI generation:
+6. **JWT Authentication**: Stateless authentication using JWT tokens for scalability, with refresh token support for enhanced security.
 
-- `blog_post_outline` - Blog post outline
-- `product_description` - Product description
-- `social_media_caption` - Social media caption
-- `article` - Full article
-- `email` - Professional email
+7. **Input Validation**: Zod schema validation ensures type safety and data integrity at the API boundary.
 
-## Job Status
-
-Job status values:
-
-- `queued` - Job has been created and queued (initial status)
-- `processing` - Job is being processed by worker
-- `completed` - Job completed successfully
-- `failed` - Job failed
-
-## Error Handling
-
-The application includes comprehensive error handling:
-
-- Validation errors (Zod)
-- Authentication errors
-- Database errors
-- AI service errors
-- Queue errors
-
-All errors are returned in a consistent format:
-```json
-{
-  "success": false,
-  "message": "Error message"
-}
-```
-
-## Security
-
-- Passwords are hashed using bcryptjs
-- JWT tokens for authentication
-- Protected routes require valid JWT token
-- CORS configuration for frontend access
-- Input validation using Zod
-
-## Testing
-
-Use the provided Postman collection to test all endpoints. See `POSTMAN_DOCS.md` for detailed API documentation.
-
-## License
-
-ISC
-
+8. **Error Handling**: Centralized error handling middleware provides consistent error responses across all endpoints.
