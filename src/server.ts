@@ -35,7 +35,7 @@ const io = new SocketIOServer(httpServer, {
 app.set('etag', false);
 
 // Middleware to disable caching headers
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((_req: Request, res: Response, next: NextFunction) => {
   res.set({
     'Cache-Control': 'no-store, no-cache, must-revalidate, private',
     'Pragma': 'no-cache',
